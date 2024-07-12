@@ -11,6 +11,7 @@ proxy.on('error', (err, req, res) => {
 });
 
 const server = http.createServer((req, res) => {
+    console.log("request sent to ", req.url)
   const query = url.parse(req.url, true).query;
   const target = query.target; // Read target from query parameter
 
