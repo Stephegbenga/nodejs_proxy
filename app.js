@@ -7,6 +7,11 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 
+app.get('/', async (req, res) => {
+    res.send("Health Check")
+})
+
+
 // Proxy endpoint
 app.post('/', async (req, res) => {
     const { url, headers, body, method } = req.body;
