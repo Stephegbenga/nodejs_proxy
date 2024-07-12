@@ -1,30 +1,36 @@
-const http = require('http');
-const url = require('url');
-const httpProxy = require('http-proxy');
+const express = require('express');
+const axios = require('axios');
 
-// Create a proxy server
-const proxy = httpProxy.createProxyServer({});
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-proxy.on('error', (err, req, res) => {
-  res.writeHead(500, { 'Content-Type': 'text/plain' });
-  res.end('Something went wrong. And we are reporting a custom error message.');
+// Middleware
+app.use(express.json());
+
+// Proxy endpoint
+app.post('/', async (req, res) => {
+    const { url, headers, body, method } = req.body;
+
+    try {
+        const response = await axios({
+            method: method || 'GET',
+            url,
+            headers,
+            data: body,
+        });
+
+        // Return the response directly
+        res.status(response.status).json(response.data);
+    } catch (error) {
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(500).json({ message: 'Internal Server Error', error: error.message });
+        }
+    }
 });
 
-const server = http.createServer((req, res) => {
-    console.log("request sent to ", req.url)
-  const query = url.parse(req.url, true).query;
-  const target = query.target; // Read target from query parameter
 
-  if (!target) {
-    res.writeHead(400, { 'Content-Type': 'text/plain' });
-    res.end('Target URL is required as a query parameter');
-    return;
-  }
-
-  proxy.web(req, res, { target });
-});
-
-const PORT = 8000;
-server.listen(PORT, () => {
-  console.log(`Proxy server is running on port ${PORT}`);
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
